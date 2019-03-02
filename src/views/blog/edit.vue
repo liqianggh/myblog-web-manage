@@ -1,133 +1,133 @@
 <template>
-    <div class="app-container">
-      <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-        <el-form-item label="标题" prop="name">
-          <el-input v-model="ruleForm.name"></el-input>
-        </el-form-item>
-        <el-form-item label="活动区域" prop="region">
-          <el-select v-model="ruleForm.region" placeholder="请选择活动区域">
-            <el-option label="区域一" value="shanghai"></el-option>
-            <el-option label="区域二" value="beijing"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="活动时间" required>
-          <el-col :span="11">
-            <el-form-item prop="date1">
-              <el-date-picker type="date" placeholder="选择日期" v-model="ruleForm.date1" style="width: 100%;"></el-date-picker>
-            </el-form-item>
-          </el-col>
-          <el-col class="line" :span="2">-</el-col>
-          <el-col :span="11">
-            <el-form-item prop="date2">
-              <el-time-picker type="fixed-time" placeholder="选择时间" v-model="ruleForm.date2" style="width: 100%;"></el-time-picker>
-            </el-form-item>
-          </el-col>
-        </el-form-item>
-        <el-form-item label="即时配送" prop="delivery">
-          <el-switch v-model="ruleForm.delivery"></el-switch>
-        </el-form-item>
-        <el-form-item label="活动性质" prop="type">
-          <el-checkbox-group v-model="ruleForm.type">
-            <el-checkbox label="美食/餐厅线上活动" name="type"></el-checkbox>
-            <el-checkbox label="地推活动" name="type"></el-checkbox>
-            <el-checkbox label="线下主题活动" name="type"></el-checkbox>
-            <el-checkbox label="单纯品牌曝光" name="type"></el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-        <el-form-item label="特殊资源" prop="resource">
-          <el-radio-group v-model="ruleForm.resource">
-            <el-radio label="线上品牌商赞助"></el-radio>
-            <el-radio label="线下场地免费"></el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="活动形式" prop="desc">
-          <el-input type="textarea" v-model="ruleForm.desc"></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
-          <el-button @click="resetForm('ruleForm')">重置</el-button>
-        </el-form-item>
-      </el-form>
-      <div id="main">
-        <mavon-editor v-model="value"/>
-      </div>
-    </div>
+  <div class="app-container">
+    <el-form :model="blog" :rules="rules" ref="blog" label-width="100px" class="demo-blog">
+      <el-form-item label="标题" prop="title">
+        <el-input v-model="blog.title"></el-input>
+      </el-form-item>
+      <el-form-item label="分类" prop="categoryId">
+        <el-select v-model="blog.categoryId" placeholder="请选择文章分类">
+          <el-option label="技术" value="1"></el-option>
+          <el-option label="生活笔记" value="2"></el-option>
+          <el-option label="其他" value="3"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="标签" prop="tags">
+        <el-checkbox-group  v-model="blog.tags">
+          <el-checkbox label="5">Java</el-checkbox>
+          <el-checkbox label="4" value="4">MySQL</el-checkbox>
+          <el-checkbox label="7" value="7">设计模式</el-checkbox>
+          <el-checkbox label="6" value="6">算法</el-checkbox>
+        </el-checkbox-group>
+      </el-form-item>
+      <el-form-item label="立即发布" prop="code">
+        <el-switch v-model="blog.code"></el-switch>
+      </el-form-item>
+      <el-form-item label="概要" prop="summary">
+        <el-input type="textarea" v-model="blog.summary"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <div id="main">
+          <mavon-editor ref="md" v-model="blog.content"/>
+        </div>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="submitForm()">立即创建</el-button>
+        <el-button @click="resetForm('blog')">重置</el-button>
+      </el-form-item>
+    </el-form>
+
+
+  </div>
 </template>
 
 <script>
-import 'quill/dist/quill.core.css'
-import 'quill/dist/quill.snow.css'
-import 'quill/dist/quill.bubble.css'
-import { quillEditor } from 'vue-quill-editor'
-export default {
-  name: 'editor',
-  data: function() {
-    return {
-      ruleForm: {
-        name: '',
-        region: '',
-        date1: '',
-        date2: '',
-        delivery: false,
-        type: [],
-        resource: '',
-        desc: ''
+  import 'quill/dist/quill.core.css'
+  import 'quill/dist/quill.snow.css'
+  import 'quill/dist/quill.bubble.css'
+  import { quillEditor } from 'vue-quill-editor'
+  import axios from 'Axios'
+
+  export default {
+    name: 'editor',
+    data: function() {
+      return {
+        blog: {
+          title: '',
+          categoryId: '',
+          code: 1,
+          tags: [],
+          summary: '',
+          author: 'Jann',
+          isDeleted: 0
+        },
+        rules: {
+          title: [
+            { required: true, message: '请输入标题', trigger: 'blur' },
+            { min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: 'blur' }
+          ],
+          categoryId: [
+            { required: true, message: '请选择分类', trigger: 'change' }
+          ],
+          date1: [
+            { type: 'date', required: true, message: '请选择日期', trigger: 'change' }
+          ],
+          date2: [
+            { type: 'date', required: true, message: '请选择时间', trigger: 'change' }
+          ],
+          tags: [
+            { type: 'array', required: true, message: '请至少选择一个标签', trigger: 'change' }
+          ],
+          resource: [
+            { required: true, message: '123', trigger: 'change' }
+          ],
+          summary: [
+            { required: true, message: '请填写文章摘要', trigger: 'blur' }
+          ]
+        },
+        content: '',
+        editorOption: {
+          placeholder: 'Hello World'
+        }
+      }
+    },
+    components: {
+      quillEditor
+    },
+    methods: {
+      onEditorChange({ editor, html, text }) {
+        this.content = html
       },
-      rules: {
-        name: [
-          { required: true, message: '请输入活动名称', trigger: 'blur' },
-          { min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur' }
-        ],
-        region: [
-          { required: true, message: '请选择活动区域', trigger: 'change' }
-        ],
-        date1: [
-          { type: 'date', required: true, message: '请选择日期', trigger: 'change' }
-        ],
-        date2: [
-          { type: 'date', required: true, message: '请选择时间', trigger: 'change' }
-        ],
-        type: [
-          { type: 'array', required: true, message: '请至少选择一个活动性质', trigger: 'change' }
-        ],
-        resource: [
-          { required: true, message: '请选择活动资源', trigger: 'change' }
-        ],
-        desc: [
-          { required: true, message: '请填写活动形式', trigger: 'blur' }
-        ]
-      },
-      content: '',
-      editorOption: {
-        placeholder: 'Hello World'
+      submitForm() {
+        this.blog.code = this.blog.code === true ? 0 : 1
+        alert(JSON.stringify(this.blog))
+        axios.post('http://123.206.88.191:8088/manage/blogs', this.blog).then(result => {
+          if (result.data.status === 1000) {
+            this.$message.success('提交成功！')
+          } else {
+            this.$message.error(JSON.stringify(result.data.msg))
+          }
+        })
       }
     }
-  },
-  components: {
-    quillEditor
-  },
-  methods: {
-    onEditorChange({ editor, html, text }) {
-      this.content = html
-    },
-    submit() {
-      console.log(this.content)
-      this.$message.success('提交成功！')
-    }
   }
-}
 </script>
 <style rel="stylesheet/scss" lang="scss" scoped>
-    .editor-btn{
-        margin-top: 20px;
-    }
-    .crumbs,.plugins-tips {
-       margin-bottom: 20px
-    }
-    .container {
-      padding: 30px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 5px
-    }
+  .editor-btn {
+    margin-top: 20px;
+  }
+
+  .crumbs, .plugins-tips {
+    margin-bottom: 20px
+  }
+
+  .container {
+    padding: 30px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px
+  }
+
+  .markdown-body {
+    height: 440px;
+  }
 </style>

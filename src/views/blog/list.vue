@@ -25,15 +25,15 @@
     </el-col>
     <!--列表-->
     <el-table :data="tableList" v-loading="listLoading" border element-loading-text="拼命加载中" style="width: 100%;">
-      <el-table-column prop="uid" label="序号" width="65">
+      <el-table-column prop="id" label="序号" width="65">
       </el-table-column>
-      <el-table-column prop="cname" label="姓名">
+      <el-table-column prop="title" label="标题">
       </el-table-column>
       <el-table-column prop="title" min-width="150px" label="标题">
       </el-table-column>
-      <el-table-column prop="number" label="阅读数"  width="65">
+      <el-table-column prop="viewCount" label="阅读数"  width="65">
       </el-table-column>
-      <el-table-column prop="date" label="时间" width="110px">
+      <el-table-column prop="updateTime" label="修改时间" width="160px">
       </el-table-column>
       <el-table-column  label="状态" width="120" >
         <template slot-scope="scope">
@@ -106,6 +106,7 @@
 
 <script>
 import { getList, updateArticle } from '@/api/table'
+import axios from 'Axios'
 export default {
   data() {
     return {
@@ -151,13 +152,24 @@ export default {
   methods: {
     fetchData() {
       this.listLoading = true
-      getList(this.listQuery).then(response => {
-        const limit = 10
-        const pageList = response.data.filter((item, index) => index < limit * this.page && index >= limit * (this.page - 1))
-        console.log(pageList)
-        this.total = response.data.length
-        this.tableList = pageList
-        this.listLoading = false
+      // getList(this.listQuery).then(response => {
+      //   const limit = 10
+      //   const pageList = response.data.filter((item, index) => index < limit * this.page && index >= limit * (this.page - 1))
+      //   console.log(pageList)
+      //   this.total = response.data.length
+      //   this.tableList = pageList
+      //   this.listLoading = false
+      // })
+      axios.get('http://123.206.88.191:8088/manage/blogs?pageSize=' + this.pageSize + '&pageNum=' + this.page).then(result => {
+        if (result.data.status === 1000) {
+          this.tableList = result.data.data.list
+          this.total = result.data.data.total
+          this.page = result.data.data.pageNum
+          this.pageSize = result.data.data.pageSize
+          this.listLoading = false
+        } else {
+          this.$message.error(JSON.stringify(result.data.msg))
+        }
       })
     },
     doFilter() {

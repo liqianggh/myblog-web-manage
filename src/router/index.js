@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+
 const _import = require('./_import_' + process.env.NODE_ENV)
 Vue.use(Router)
 
@@ -16,7 +17,7 @@ export const constantRouterMap = [
     children: [{
       path: 'dashboard',
       component: () => import('@/views/dashboard/index'),
-      meta: {title: '统计', icon: 'tongji'}
+      meta: { title: '统计', icon: 'tongji' }
     }]
   },
   {
@@ -24,13 +25,13 @@ export const constantRouterMap = [
     component: Layout,
     redirect: '/blog/add',
     name: '博客',
-    meta: {title: '', icon: 'form'},
+    meta: { title: '', icon: 'form' },
     children: [
       {
         path: 'edit',
         name: 'Edit',
         component: () => import('@/views/blog/edit'),
-        meta: {title: '发布博客',icon: 'form'}
+        meta: { title: '发布博客', icon: 'form' }
       }]
   },
   {
@@ -38,13 +39,13 @@ export const constantRouterMap = [
     component: Layout,
     redirect: '/blog/list',
     name: '博客',
-    meta: {title: '', icon: 'form'},
+    meta: { title: '', icon: 'form' },
     children: [
       {
         path: 'list',
         name: 'List',
         component: () => import('@/views/blog/list'),
-        meta: {title: '博客管理',icon: 'liebiao'}
+        meta: { title: '博客管理', icon: 'liebiao' }
       }]
   },
   {
@@ -52,13 +53,13 @@ export const constantRouterMap = [
     component: Layout,
     redirect: '/tag/list',
     name: '标签管理',
-    meta: {title: '', icon: 'form'},
+    meta: { title: '', icon: 'form' },
     children: [
       {
         path: 'list',
         name: 'List',
         component: () => import('@/views/tag/list'),
-        meta: {title: '标签/分类',icon: 'icon--'}
+        meta: { title: '标签/分类', icon: 'icon--' }
       }]
   },
   {
@@ -66,13 +67,13 @@ export const constantRouterMap = [
     component: Layout,
     redirect: '/friend/list',
     // name: '',
-    meta: {title: '评论', icon: 'form'},
+    meta: { title: '评论', icon: 'form' },
     children: [
       {
         path: 'list',
         name: 'List',
         component: () => import('@/views/tag/list'),
-        meta: {title: '友链管理',icon: 'lianjie'}
+        meta: { title: '友链管理', icon: 'lianjie' }
       }]
   },
   {
@@ -86,7 +87,7 @@ export const constantRouterMap = [
         path: '',
         name: 'List',
         component: () => import('@/views/comment/list'),
-        meta: {title: '评论管理',icon: 'pinglun'}
+        meta: { title: '评论管理', icon: 'pinglun' }
       }]
   },
   // // 表单
@@ -126,7 +127,7 @@ export const constantRouterMap = [
   //     }
   //   ]
   // }
-    {
+  {
     path: '/system/settings',
     component: Layout,
     redirect: '/system/settings',
