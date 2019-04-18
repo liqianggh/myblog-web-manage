@@ -4,22 +4,22 @@
       <el-form :inline="true">
         <el-form-item>
           <el-select v-model="value" clearable placeholder="状态">
-              <el-option
-                v-for="item in status"
-                :key="item.statusId"
-                :label="item.label"
-                :value="item.statusId">
-              </el-option>
+            <el-option
+              v-for="item in status"
+              :key="item.statusId"
+              :label="item.label"
+              :value="item.statusId">
+            </el-option>
           </el-select>
         </el-form-item>
-                <el-form-item >
+        <el-form-item>
           <el-input placeholder="姓名" v-model="searchName"></el-input>
         </el-form-item>
         <el-form-item>
-           <el-button type="primary" @click="doFilter()"><i class="el-icon-search"></i>搜索</el-button>
+          <el-button type="primary" @click="doFilter()"><i class="el-icon-search"></i>搜索</el-button>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" >新增</el-button>
+          <el-button type="primary">新增</el-button>
         </el-form-item>
       </el-form>
     </el-col>
@@ -31,62 +31,28 @@
       </el-table-column>
       <el-table-column prop="title" min-width="150px" label="标题">
       </el-table-column>
-      <el-table-column prop="viewCount" label="阅读数"  width="65">
+      <el-table-column prop="viewCount" label="阅读数" width="65">
       </el-table-column>
       <el-table-column prop="updateTime" label="修改时间" width="160px">
       </el-table-column>
-      <el-table-column  label="状态" width="120" >
-        <template slot-scope="scope">
-          <el-tag size="small" :type="scope.row.status | statusFilter" @click="isStatus(scope.$index, scope.row)" v-if="scope.row.status == 1">启用</el-tag>
-          <el-tag size="small"  :type="scope.row.status | statusFilter" @click="isStatus(scope.$index, scope.row)" v-if="scope.row.status == 2">禁用</el-tag>
-        </template>
+      <el-table-column :formatter="formatCode" label="状态" width="120">
       </el-table-column>
       <el-table-column prop="operation" label="操作 ">
-        <template slot-scope="scope" >
-         <el-button size="small" type="primary"  @click="handleUpdate(scope.row)">编辑</el-button>
-         <el-button v-if="scope.row.status!='2'" size="mini" type="success" @click="handleModifyStatus(scope.row,'2')">启用
-          </el-button>
-          <el-button v-if="scope.row.status!='1'" size="mini" @click="handleModifyStatus(scope.row,'1')">禁用
-          </el-button>
+        <template slot-scope="scope">
+          <el-button size="small" type="primary" @click="handleUpdate(scope.row)">编辑</el-button>
           <el-button size="small" type="danger" @click="deleteUpdate(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
     <!--工具条-->
     <el-pagination layout="total, prev, pager, next"
-                    background
-                    :page-size="10"
-                    @size-change="handleSizeChange"
-                    :total="total"
-                    @current-change="handleCurrentChange"
-                    style="text-align:center;">
+                   background
+                   :page-size="10"
+                   @size-change="handleSizeChange"
+                   :total="total"
+                   @current-change="handleCurrentChange"
+                   style="text-align:center;">
     </el-pagination>
-
-
-    <!-- 新增编辑院校 -->
-    <el-dialog title="Edit" :visible.sync="isShowEditVisible">
-      <el-form label-width="80px" :model="temp" ref="dataForm">
-        <el-form-item label="姓名" prop="cname">
-          <el-input v-model="temp.cname"></el-input>
-        </el-form-item>
-        <el-form-item label="时间" prop="date">
-          <el-input v-model="temp.date"></el-input>
-        </el-form-item>
-        <el-form-item label="状态" v-model="temp.status">
-         <el-select v-model="temp.status" placeholder="启用状态">
-            <el-option v-for="item in status"
-                       :label="item.label"
-                       :value="item.statusId"
-                       :key="item.statusId"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="isShowEditVisible = false">取消</el-button>
-        <el-button type="primary" :loading="listLoading" @click="updateData" class="title1">确定</el-button>
-      </div>
-    </el-dialog>
 
     <!-- 删除弹框 -->
     <el-dialog
@@ -103,181 +69,189 @@
 </template>
 
 
-
 <script>
-import { getList, updateArticle } from '@/api/table'
-import axios from 'Axios'
-export default {
-  data() {
-    return {
-      tableList: [],
-      listLoading: true,
-      isShowEditVisible: false,
-      deleteVisible: false,
-      temp: {
-        uid: '',
-        cname: '',
-        date: '',
-        status: ''
-      },
-      total: 0,
-      page: 1,
-      pageSize: 10,
-      status: [
-        {
-          statusId: 1,
-          label: '启用'
-        }, {
-          statusId: 0,
-          label: '禁用'
-        }
-      ],
-      value: '',
-      searchName: '',
-      filterTableDataEnd: []
-    }
-  },
-  created() {
-    this.fetchData()
-  },
-  filters: {
-    statusFilter(status) {
-      const statusMap = {
-        1: 'success',
-        2: 'danger'
-      }
-      return statusMap[status]
-    }
-  },
-  methods: {
-    fetchData() {
-      this.listLoading = true
-      // getList(this.listQuery).then(response => {
-      //   const limit = 10
-      //   const pageList = response.data.filter((item, index) => index < limit * this.page && index >= limit * (this.page - 1))
-      //   console.log(pageList)
-      //   this.total = response.data.length
-      //   this.tableList = pageList
-      //   this.listLoading = false
-      // })
-      axios.get('http://123.206.88.191:8088/manage/blogs?pageSize=' + this.pageSize + '&pageNum=' + this.page).then(result => {
-        if (result.data.status === 1000) {
-          this.tableList = result.data.data.list
-          this.total = result.data.data.total
-          this.page = result.data.data.pageNum
-          this.pageSize = result.data.data.pageSize
-          this.listLoading = false
-        } else {
-          this.$message.error(JSON.stringify(result.data.msg))
-        }
-      })
-    },
-    doFilter() {
-      if (this.searchName === '') {
-        this.fetchData()
-        // this.$message.warning('查询条件不能为空！')
-        return
-      }
-      console.log(this.searchName)
-      // 每次手动将数据置空,因为会出现多次点击搜索情况
-      this.filterTableDataEnd = []
-      this.tableList.forEach((value, index) => {
-        if (value.cname) {
-          if (value.cname.indexOf(this.searchName) >= 0) {
-            this.filterTableDataEnd.push(value)
-            console.log(this.filterTableDataEnd)
+  import {getList, updateArticle} from '@/api/table'
+  import axios from 'Axios'
+
+  export default {
+    data() {
+      return {
+        tableList: [],
+        listLoading: true,
+        isShowEditVisible: false,
+        deleteVisible: false,
+        temp: {
+          uid: '',
+          cname: '',
+          date: '',
+          status: ''
+        },
+        total: 0,
+        page: 1,
+        pageSize: 10,
+        status: [
+          {
+            statusId: 1,
+            label: '启用'
+          }, {
+            statusId: 0,
+            label: '禁用'
           }
-        }
-      })
-      // 页面数据改变重新统计数据数量和当前页
-      this.page = 1
-      this.total = this.filterTableDataEnd.length
-      // 渲染表格,根据值
-      this.currentChangePage(this.filterTableDataEnd)
-    },
-    clickfun(e) {
-      console.log(e.target.innerText)
-    },
-    handleUpdate(row) {
-      this.isShowEditVisible = true
-      this.temp = Object.assign({}, row)
-      console.log(row)
-    },
-    deleteUpdate(row) {
-      console.log(row)
-      this.deleteVisible = true
-      this.temp = Object.assign({}, row)
-      // console.log(row)
-    },
-    submitDelete() {
-      const tempData = Object.assign({}, this.temp)
-      console.log(tempData)
-      console.log(this.tableList)
-      for (const v of this.tableList) {
-        if (v.uid === this.temp.uid) {
-          const index = this.tableList.indexOf(v)
-          this.tableList.splice(blog, 1)
-          this.fetchData()
-          console.log(this.tableList)
-          break
-        }
+        ],
+        value: '',
+        searchName: '',
+        filterTableDataEnd: []
       }
-      this.deleteVisible = false
-      this.$notify({
-        title: '成功',
-        message: '删除成功',
-        type: 'success',
-        duration: 2000
-      })
     },
-    handleModifyStatus(row, status) {
-      this.$message({
-        message: '操作成功',
-        type: 'success'
-      })
-      console.log(row)
-      row.status = status
+    created() {
+      this.fetchData()
     },
-    updateData() {
-      const tempData = Object.assign({}, this.temp)
-      console.log(tempData)
-      updateArticle(tempData).then(() => {
+    filters: {
+      statusFilter(status) {
+        const statusMap = {
+          1: 'success',
+          2: 'danger'
+        }
+        return statusMap[status]
+      }
+    },
+    methods: {
+      fetchData() {
+        this.listLoading = true
+        // getList(this.listQuery).then(response => {
+        //   const limit = 10
+        //   const pageList = response.data.filter((item, index) => index < limit * this.page && index >= limit * (this.page - 1))
+        //   console.log(pageList)
+        //   this.total = response.data.length
+        //   this.tableList = pageList
+        //   this.listLoading = false
+        // })
+        axios.get('http://123.206.88.191:8088/manage/blogs?pageSize=' + this.pageSize + '&pageNum=' + this.page).then(result => {
+          if (result.data.status === 1000) {
+            this.tableList = result.data.data.list
+            this.total = result.data.data.total
+            this.page = result.data.data.pageNum
+            this.pageSize = result.data.data.pageSize
+            this.listLoading = false
+          } else {
+            this.$message.error(JSON.stringify(result.data.msg))
+          }
+        })
+      },
+      doFilter() {
+        if (this.searchName === '') {
+          this.fetchData()
+          // this.$message.warning('查询条件不能为空！')
+          return
+        }
+        console.log(this.searchName)
+        // 每次手动将数据置空,因为会出现多次点击搜索情况
+        this.filterTableDataEnd = []
+        this.tableList.forEach((value, index) => {
+          if (value.cname) {
+            if (value.cname.indexOf(this.searchName) >= 0) {
+              this.filterTableDataEnd.push(value)
+              console.log(this.filterTableDataEnd)
+            }
+          }
+        })
+        // 页面数据改变重新统计数据数量和当前页
+        this.page = 1
+        this.total = this.filterTableDataEnd.length
+        // 渲染表格,根据值
+        this.currentChangePage(this.filterTableDataEnd)
+      },
+      clickfun(e) {
+        console.log(e.target.innerText)
+      },
+      handleUpdate(row) {
+        this.temp = Object.assign({}, row)
+        console.log(row)
+        this.$router.push({
+          path: '/blog/edit',
+          query: {
+            id: this.temp.id
+          }
+        })
+      },
+      deleteUpdate(row) {
+        console.log(row)
+        this.deleteVisible = true
+        this.temp = Object.assign({}, row)
+        // console.log(row)
+      },
+      submitDelete() {
+        const tempData = Object.assign({}, this.temp)
+        console.log(tempData)
+        console.log(this.tableList)
         for (const v of this.tableList) {
           if (v.uid === this.temp.uid) {
             const index = this.tableList.indexOf(v)
-            this.tableList.splice(blog, 1, this.temp)
+            this.tableList.splice(blog, 1)
+            this.fetchData()
+            console.log(this.tableList)
             break
           }
         }
-        this.isShowEditVisible = false
+        this.deleteVisible = false
         this.$notify({
           title: '成功',
-          message: '更新成功',
+          message: '删除成功',
           type: 'success',
           duration: 2000
         })
-      })
-    },
-    handleSizeChange(val) {
-      this.page = val
-      console.log(this.page)
-      this.fetchData()
-    },
-    handleCurrentChange(val) {
-      this.page = val
-      console.log(this.page)
-      this.fetchData()
-    },
-    currentChangePage(list) {
-      let from = (this.page - 1) * this.pageSize
-      const to = this.page * this.pageSize
-      this.tableList = []
-      for (; from < to; from++) {
-        if (list[from]) {
-          this.tableList.push(list[from])
+      },
+      handleModifyStatus(row, status) {
+        this.$message({
+          message: '操作成功',
+          type: 'success'
+        })
+        console.log(row)
+        row.status = status
+      },
+      updateData() {
+        const tempData = Object.assign({}, this.temp)
+        console.log(tempData)
+        updateArticle(tempData).then(() => {
+          for (const v of this.tableList) {
+            if (v.uid === this.temp.uid) {
+              const index = this.tableList.indexOf(v)
+              this.tableList.splice(blog, 1, this.temp)
+              break
+            }
+          }
+          this.isShowEditVisible = false
+          this.$notify({
+            title: '成功',
+            message: '更新成功',
+            type: 'success',
+            duration: 2000
+          })
+        })
+      },
+      handleSizeChange(val) {
+        this.page = val
+        console.log(this.page)
+        this.fetchData()
+      },
+      handleCurrentChange(val) {
+        this.page = val
+        console.log(this.page)
+        this.fetchData()
+      },
+      currentChangePage(list) {
+        let from = (this.page - 1) * this.pageSize
+        const to = this.page * this.pageSize
+        this.tableList = []
+        for (; from < to; from++) {
+          if (list[from]) {
+            this.tableList.push(list[from])
+          }
         }
+      },
+      formatCode: function(row, colum) {
+        return row.code === 0 ? '已发布' : row.code === 1 ? '删除' : row.code === 2 ? '草稿' : '未知'
       }
     }
   }
-}
 </script>

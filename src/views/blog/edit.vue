@@ -12,7 +12,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="标签" prop="tags">
-        <el-checkbox-group  v-model="blog.tags">
+        <el-checkbox-group v-model="blog.tags">
           <el-checkbox label="5">Java</el-checkbox>
           <el-checkbox label="4" value="4">MySQL</el-checkbox>
           <el-checkbox label="7" value="7">设计模式</el-checkbox>
@@ -44,12 +44,13 @@
   import 'quill/dist/quill.core.css'
   import 'quill/dist/quill.snow.css'
   import 'quill/dist/quill.bubble.css'
-  import { quillEditor } from 'vue-quill-editor'
+  import {quillEditor} from 'vue-quill-editor'
   import axios from 'Axios'
 
   export default {
     name: 'editor',
-    data: function() {
+    id: null,
+    data: function () {
       return {
         blog: {
           title: '',
@@ -62,26 +63,26 @@
         },
         rules: {
           title: [
-            { required: true, message: '请输入标题', trigger: 'blur' },
-            { min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: 'blur' }
+            {required: true, message: '请输入标题', trigger: 'blur'},
+            {min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: 'blur'}
           ],
           categoryId: [
-            { required: true, message: '请选择分类', trigger: 'change' }
+            {required: true, message: '请选择分类', trigger: 'change'}
           ],
           date1: [
-            { type: 'date', required: true, message: '请选择日期', trigger: 'change' }
+            {type: 'date', required: true, message: '请选择日期', trigger: 'change'}
           ],
           date2: [
-            { type: 'date', required: true, message: '请选择时间', trigger: 'change' }
+            {type: 'date', required: true, message: '请选择时间', trigger: 'change'}
           ],
           tags: [
-            { type: 'array', required: true, message: '请至少选择一个标签', trigger: 'change' }
+            {type: 'array', required: true, message: '请至少选择一个标签', trigger: 'change'}
           ],
           resource: [
-            { required: true, message: '123', trigger: 'change' }
+            {required: true, message: '123', trigger: 'change'}
           ],
           summary: [
-            { required: true, message: '请填写文章摘要', trigger: 'blur' }
+            {required: true, message: '请填写文章摘要', trigger: 'blur'}
           ]
         },
         content: '',
@@ -93,8 +94,33 @@
     components: {
       quillEditor
     },
+    created() {
+      this.getParams()
+    },
+    mounted() {
+      this.initData(this.id)
+    },
     methods: {
-      onEditorChange({ editor, html, text }) {
+      initData(id) {
+        if (id !== null) {
+          axios.get('http://123.206.88.191:8088/manage/blogs/' + id).then(result => {
+            if (result.data.status === 1000) {
+              this.blog = result.data.data
+              console.log(this.blog)
+            } else {
+              this.$message.error(JSON.stringify(result.data.msg))
+            }
+          })
+        }
+      },
+      getParams() {
+        // 取到路由带过来的参数
+        const routerParams = this.$route.query.id
+        // 将数据放在当前组件的数据内
+        this.id = routerParams
+        this.keyupMallName()
+      },
+      onEditorChange({editor, html, text}) {
         this.content = html
       },
       submitForm() {

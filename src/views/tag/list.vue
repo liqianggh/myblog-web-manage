@@ -2,24 +2,24 @@
   <div class="app-container">
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true">
+        <!--<el-form-item>-->
+          <!--<el-select v-model="value" clearable placeholder="状态">-->
+            <!--<el-option-->
+              <!--v-for="item in status"-->
+              <!--:key="item.statusId"-->
+              <!--:label="item.label"-->
+              <!--:value="item.statusId">-->
+            <!--</el-option>-->
+          <!--</el-select>-->
+        <!--</el-form-item>-->
+        <!--<el-form-item>-->
+          <!--<el-input placeholder="姓名" v-model="searchName"></el-input>-->
+        <!--</el-form-item>-->
+        <!--<el-form-item>-->
+          <!--<el-button type="primary" @click="doFilter()"><i class="el-icon-search"></i>搜索</el-button>-->
+        <!--</el-form-item>-->
         <el-form-item>
-          <el-select v-model="value" clearable placeholder="状态">
-            <el-option
-              v-for="item in status"
-              :key="item.statusId"
-              :label="item.label"
-              :value="item.statusId">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-input placeholder="姓名" v-model="searchName"></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="doFilter()"><i class="el-icon-search"></i>搜索</el-button>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary">新增</el-button>
+          <el-button type="primary" @click="handleAdd()">新增</el-button>
         </el-form-item>
       </el-form>
     </el-col>
@@ -40,11 +40,6 @@
       <el-table-column prop="operation" label="操作 ">
         <template slot-scope="scope">
           <el-button size="small" type="primary" @click="handleUpdate(scope.row)">编辑</el-button>
-          <el-button v-if="scope.row.status!='2'" size="mini" type="success" @click="handleModifyStatus(scope.row,'2')">
-            启用
-          </el-button>
-          <el-button v-if="scope.row.status!='1'" size="mini" @click="handleModifyStatus(scope.row,'1')">禁用
-          </el-button>
           <el-button size="small" type="danger" @click="deleteUpdate(scope.row)">删除</el-button>
         </template>
       </el-table-column>
@@ -60,8 +55,8 @@
     </el-pagination>
 
 
-    <!-- 新增编辑标签 -->
-    <el-dialog title="Edit" :visible.sync="isShowEditVisible">
+    <!-- 编辑标签 -->
+    <el-dialog title="编辑" :visible.sync="isShowEditVisible">
       <el-form label-width="80px" :model="tagFormData" ref="dataForm">
         <el-form-item label="标题" prop="tagName">
           <el-input v-model="tagFormData.tagName"></el-input>
@@ -69,30 +64,42 @@
         <el-form-item label="详情" prop="tagDesc">
           <el-input v-model="tagFormData.tagDesc"></el-input>
         </el-form-item>
-        <!--<el-form-item label="状态" v-model="temp.status">-->
-        <!--<el-select v-model="temp.status" placeholder="启用状态">-->
-        <!--<el-option v-for="item in status"-->
-        <!--:label="item.label"-->
-        <!--:value="item.statusId"-->
-        <!--:key="item.statusId"-->
-        <!--&gt;</el-option>-->
-        <!--</el-select>-->
-        <!--</el-form-item>-->
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="isShowEditVisible = false">取消</el-button>
         <el-button type="primary" :loading="listLoading" @click="updateData" class="title1">确定</el-button>
       </div>
     </el-dialog>
+    <!-- 新增标签 -->
+    <el-dialog title="添加" :visible.sync="isShowAddVisible">
+      <el-form label-width="80px" :model="tagFormData" ref="dataForm">
+        <el-form-item label="标题" prop="tagName">
+          <el-input v-model="tagFormData.tagName"></el-input>
+        </el-form-item>
+        <el-form-item label="分类" prop="type">
+          <el-select v-model="tagFormData.type" placeholder="请选择类型分类/标签">
+            <el-option label="分类" value="1"></el-option>
+            <el-option label="标签" value="2"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="详情" prop="tagDesc">
+          <el-input v-model="tagFormData.tagDesc"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="isShowAddVisible = false">取消</el-button>
+        <el-button type="primary" :loading="listLoading" @click="addData" class="title1">确定</el-button>
+      </div>
+    </el-dialog>
 
     <!-- 删除弹框 -->
     <el-dialog
       title="删除"
-      :visible.sync="deleteVisible"
+      :visible.sync="isShowDeleteVisible"
       width="30%">
       <span>确认删除吗</span>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="deleteVisible = false">取 消</el-button>
+        <el-button @click="isShowDeleteVisible = false">取 消</el-button>
         <el-button type="primary" @click="submitDelete">确 定</el-button>
       </span>
     </el-dialog>
@@ -109,10 +116,11 @@
         tableList: [],
         listLoading: true,
         isShowEditVisible: false,
-        deleteVisible: false,
+        isShowAddVisible: false,
+        isShowDeleteVisible: false,
         tagFormData: {
           id: 0,
-          type: 0,
+          type: 1,
           tagName: '',
           tagDesc: ''
         },
@@ -147,7 +155,7 @@
     },
     methods: {
       fetchData() {
-        axios.get('http://123.206.88.191:8088/manage/tags?pageSize=' + this.pageSize + '&pageNum=' + this.page).then(result => {
+        axios.get('http://localhost:8088/manage/tags?pageSize=' + this.pageSize + '&pageNum=' + this.page).then(result => {
           if (result.data.status === 1000) {
             this.tableList = result.data.data.list
             this.total = result.data.data.total
@@ -185,37 +193,37 @@
       clickfun(e) {
         console.log(e.target.innerText)
       },
+      handleAdd() {
+        this.isShowAddVisible = true
+      },
       handleUpdate(row) {
         this.isShowEditVisible = true
         this.tagFormData = Object.assign({}, row)
         console.log(row)
       },
       deleteUpdate(row) {
-        console.log(row)
-        this.deleteVisible = true
+        this.isShowDeleteVisible = true
         this.temp = Object.assign({}, row)
         // console.log(row)
       },
       submitDelete() {
-        const tempData = Object.assign({}, this.temp)
-        console.log(tempData)
-        console.log(this.tableList)
-        for (const v of this.tableList) {
-          if (v.uid === this.temp.uid) {
-            const index = this.tableList.indexOf(v)
-            this.tableList.splice(list, 1)
+        var id = this.temp.id
+        var type = this.temp.type
+        axios.delete('http://localhost:8088/manage/tags/' + id + '?type=' + type).then((result) => {
+          if (result.data.status === 1000) {
+            this.$notify({
+              title: '成功',
+              message: '删除成功',
+              type: 'success',
+              duration: 2000
+            })
             this.fetchData()
-            console.log(this.tableList)
-            break
+          } else {
+            this.$message.error(JSON.stringify(result.data.msg))
           }
-        }
-        this.deleteVisible = false
-        this.$notify({
-          title: '成功',
-          message: '删除成功',
-          type: 'success',
-          duration: 2000
         })
+        this.isShowDeleteVisible = false
+
       },
       handleModifyStatus(row, status) {
         this.$message({
@@ -225,13 +233,33 @@
         console.log(row)
         row.status = status
       },
+      addData() {
+        const tempData = Object.assign({})
+        tempData.tagName = this.tagFormData.tagName
+        tempData.tagDesc = this.tagFormData.tagDesc
+        tempData.type = this.tagFormData.type
+        axios.post('http://localhost:8088/manage/tags', tempData).then((result) => {
+          if (result.data.status === 1000) {
+            this.isShowAddVisible = false
+            this.fetchData()
+            this.$notify({
+              title: '成功',
+              message: '添加成功',
+              type: 'success',
+              duration: 2000
+            })
+          } else {
+            this.$message.error(JSON.stringify(result.data.msg))
+          }
+        })
+      },
       updateData() {
         const tempData = Object.assign({})
         tempData.id = this.tagFormData.id
         tempData.tagName = this.tagFormData.tagName
         tempData.tagDesc = this.tagFormData.tagDesc
         tempData.type = this.tagFormData.type
-        axios.put('http://123.206.88.191:8088/manage/tags/' + tempData.id + '?type=' + tempData.type, tempData).then((result) => {
+        axios.put('http://localhost:8088/manage/tags/' + tempData.id + '?type=' + tempData.type, tempData).then((result) => {
           if (result.data.status === 1000) {
             this.isShowEditVisible = false
             this.fetchData()
