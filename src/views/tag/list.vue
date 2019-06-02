@@ -155,7 +155,7 @@
     },
     methods: {
       fetchData() {
-        axios.get('http://localhost:8088/manage/tags?pageSize=' + this.pageSize + '&pageNum=' + this.page).then(result => {
+        axios.get('api/manage/tags?pageSize=' + this.pageSize + '&pageNum=' + this.page).then(result => {
           if (result.data.status === 1000) {
             this.tableList = result.data.data.list
             this.total = result.data.data.total
@@ -209,7 +209,7 @@
       submitDelete() {
         var id = this.temp.id
         var type = this.temp.type
-        axios.delete('http://localhost:8088/manage/tags/' + id + '?type=' + type).then((result) => {
+        axios.delete('api/manage/tags/' + id + '?type=' + type).then((result) => {
           if (result.data.status === 1000) {
             this.$notify({
               title: '成功',
@@ -238,7 +238,7 @@
         tempData.tagName = this.tagFormData.tagName
         tempData.tagDesc = this.tagFormData.tagDesc
         tempData.type = this.tagFormData.type
-        axios.post('http://localhost:8088/manage/tags', tempData).then((result) => {
+        axios.post('api/manage/tags', tempData).then((result) => {
           if (result.data.status === 1000) {
             this.isShowAddVisible = false
             this.fetchData()
@@ -259,7 +259,7 @@
         tempData.tagName = this.tagFormData.tagName
         tempData.tagDesc = this.tagFormData.tagDesc
         tempData.type = this.tagFormData.type
-        axios.put('http://localhost:8088/manage/tags/' + tempData.id + '?type=' + tempData.type, tempData).then((result) => {
+        axios.put('api/manage/tags/' + tempData.id + '?type=' + tempData.type, tempData).then((result) => {
           if (result.data.status === 1000) {
             this.isShowEditVisible = false
             this.fetchData()

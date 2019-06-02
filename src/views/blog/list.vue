@@ -126,7 +126,7 @@
         //   this.tableList = pageList
         //   this.listLoading = false
         // })
-        axios.get('http://123.206.88.191:8088/manage/blogs?pageSize=' + this.pageSize + '&pageNum=' + this.page).then(result => {
+        axios.get('/api/manage/blogs?pageSize=' + this.pageSize + '&pageNum=' + this.page).then(result => {
           if (result.data.status === 1000) {
             this.tableList = result.data.data.list
             this.total = result.data.data.total

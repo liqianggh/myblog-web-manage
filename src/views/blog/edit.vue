@@ -103,7 +103,7 @@
     methods: {
       initData(id) {
         if (id !== null) {
-          axios.get('http://123.206.88.191:8088/manage/blogs/' + id).then(result => {
+          axios.get('/api/manage/blogs/' + id).then(result => {
             if (result.data.status === 1000) {
               this.blog = result.data.data
               console.log(this.blog)
@@ -126,7 +126,7 @@
       submitForm() {
         this.blog.code = this.blog.code === true ? 0 : 1
         alert(JSON.stringify(this.blog))
-        axios.post('http://123.206.88.191:8088/manage/blogs', this.blog).then(result => {
+        axios.post('api/manage/blogs', this.blog).then(result => {
           if (result.data.status === 1000) {
             this.$message.success('提交成功！')
           } else {
