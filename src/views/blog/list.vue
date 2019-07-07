@@ -29,11 +29,11 @@
       </el-table-column>
       <el-table-column prop="title" label="标题">
       </el-table-column>
-      <el-table-column prop="title" min-width="150px" label="标题">
+      <el-table-column prop="summary" min-width="150px" label="标题">
       </el-table-column>
-      <el-table-column prop="viewCount" label="阅读数" width="65">
+      <el-table-column prop="view_count" label="阅读数" width="65">
       </el-table-column>
-      <el-table-column prop="updateTime" label="修改时间" width="160px">
+      <el-table-column prop="update_time" label="修改时间" width="160px">
       </el-table-column>
       <el-table-column :formatter="formatCode" label="状态" width="120">
       </el-table-column>
@@ -47,7 +47,7 @@
     <!--工具条-->
     <el-pagination layout="total, prev, pager, next"
                    background
-                   :page-size="10"
+                   :page-size="pageSize"
                    @size-change="handleSizeChange"
                    :total="total"
                    @current-change="handleCurrentChange"
@@ -86,9 +86,9 @@
           date: '',
           status: ''
         },
-        total: 0,
+        total: 7,
         page: 1,
-        pageSize: 10,
+        pageSize: 2,
         status: [
           {
             statusId: 1,
@@ -103,7 +103,7 @@
         filterTableDataEnd: []
       }
     },
-    created() {
+    mounted() {
       this.fetchData()
     },
     filters: {
@@ -118,20 +118,17 @@
     methods: {
       fetchData() {
         this.listLoading = true
-        // getList(this.listQuery).then(response => {
-        //   const limit = 10
-        //   const pageList = response.data.filter((item, index) => index < limit * this.page && index >= limit * (this.page - 1))
-        //   console.log(pageList)
-        //   this.total = response.data.length
-        //   this.tableList = pageList
-        //   this.listLoading = false
-        // })
-        axios.get('/api/manage/blogs?pageSize=' + this.pageSize + '&pageNum=' + this.page).then(result => {
+        axios.get('/api/manage/blogs', {
+          params: {
+            pageNum: this.page,
+            pageSize: this.pageSize
+          }
+        }).then(result => {
           if (result.data.status === 1000) {
             this.tableList = result.data.data.list
             this.total = result.data.data.total
-            this.page = result.data.data.pageNum
-            this.pageSize = result.data.data.pageSize
+            this.page = result.data.data.page_num
+            this.pageSize = result.data.data.page_size
             this.listLoading = false
           } else {
             this.$message.error(JSON.stringify(result.data.msg))
@@ -231,12 +228,10 @@
       },
       handleSizeChange(val) {
         this.page = val
-        console.log(this.page)
         this.fetchData()
       },
       handleCurrentChange(val) {
         this.page = val
-        console.log(this.page)
         this.fetchData()
       },
       currentChangePage(list) {
