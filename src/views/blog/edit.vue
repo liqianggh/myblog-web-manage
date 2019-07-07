@@ -6,17 +6,12 @@
       </el-form-item>
       <el-form-item label="分类" prop="categoryId">
         <el-select v-model="blog.categoryId" placeholder="请选择文章分类">
-          <el-option label="技术" value="1"></el-option>
-          <el-option label="生活笔记" value="2"></el-option>
-          <el-option label="其他" value="3"></el-option>
+          <el-option v-for="item in categories"  :label="item.v" :value="item.k"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="标签" prop="tags">
+      <el-form-item v-if="tags != null" label="标签" prop="tags">
         <el-checkbox-group v-model="blog.tags">
-          <el-checkbox label="5">Java</el-checkbox>
-          <el-checkbox label="4" value="4">MySQL</el-checkbox>
-          <el-checkbox label="7" value="7">设计模式</el-checkbox>
-          <el-checkbox label="6" value="6">算法</el-checkbox>
+          <el-checkbox  v-for="item in tags" :label="item.k">{{item.v}}</el-checkbox>
         </el-checkbox-group>
       </el-form-item>
       <el-form-item label="立即发布" prop="code">
@@ -59,8 +54,11 @@
           tags: [],
           summary: '',
           author: 'Jann',
-          isDeleted: 0
+          isDeleted: 0,
+          status: 1
         },
+        tags: [],
+        categories: [],
         rules: {
           title: [
             {required: true, message: '请输入标题', trigger: 'blur'},
@@ -99,19 +97,37 @@
     },
     mounted() {
       this.initData(this.id)
+      this.getAllTags()
     },
     methods: {
       initData(id) {
-        if (id !== null) {
+        if (id) {
           axios.get('/api/manage/blogs/' + id).then(result => {
             if (result.data.status === 1000) {
               this.blog = result.data.data
-              console.log(this.blog)
             } else {
               this.$message.error(JSON.stringify(result.data.msg))
             }
           })
         }
+      },
+      getAllTags() {
+        axios.get('/api/common/all/tags').then(result => {
+          if (result.data.status === 1000) {
+            this.tags = result.data.data
+          } else {
+            this.$message.error(JSON.stringify(result.data.msg))
+          }
+        })
+      },
+      getAllCategories() {
+        axios.get('/api/common/all/categories').then(result => {
+          if (result.data.status === 1000) {
+            this.categories = result.data.data
+          } else {
+            this.$message.error(JSON.stringify(result.data.msg))
+          }
+        })
       },
       getParams() {
         // 取到路由带过来的参数
