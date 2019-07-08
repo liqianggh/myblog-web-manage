@@ -5,7 +5,7 @@
         <el-input v-model="blog.title"></el-input>
       </el-form-item>
       <el-form-item label="分类" prop="categoryId">
-        <el-select v-model="blog.categoryId" placeholder="请选择文章分类">
+        <el-select v-model="blog.category_id" placeholder="请选择文章分类">
           <el-option v-for="item in categories" :label="item.v" :value="item.k"></el-option>
         </el-select>
       </el-form-item>
@@ -44,13 +44,13 @@
 
   export default {
     name: 'editor',
-    id: null,
     data: function() {
       return {
+        id: null,
         blog: {
           title: '',
-          categoryId: null,
-          code: 1,
+          category_id: null,
+          code: true,
           tags: [],
           summary: '',
           author: 'Jann',
@@ -97,6 +97,7 @@
     mounted() {
       this.initData(this.id)
       this.getAllTags()
+      this.getAllCategories()
     },
     methods: {
       initData(id) {
@@ -140,13 +141,23 @@
       },
       submitForm() {
         this.blog.code = this.blog.code === true ? 0 : 1
-        axios.post('api/manage/blogs', this.blog).then(result => {
-          if (result.data.status === 1000) {
-            this.$message.success('提交成功！')
-          } else {
-            this.$message.error(JSON.stringify(result.data.msg))
-          }
-        })
+        if (this.id === null || this.id ===undefined) {
+          axios.post('api/manage/blogs', this.blog).then(result => {
+            if (result.data.status === 1000) {
+              this.$message.success('提交成功！')
+            } else {
+              this.$message.error(JSON.stringify(result.data.msg))
+            }
+          })
+        } else {
+          axios.put('api/manage/blogs/' + this.id, this.blog).then(result => {
+            if (result.data.status === 1000) {
+              this.$message.success('提交成功！')
+            } else {
+              this.$message.error(JSON.stringify(result.data.msg))
+            }
+          })
+        }
       }
     }
   }

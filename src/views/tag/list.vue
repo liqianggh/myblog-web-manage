@@ -78,8 +78,8 @@
         </el-form-item>
         <el-form-item label="分类" prop="type">
           <el-select v-model="tagFormData.tag_type" placeholder="请选择类型分类/标签">
-            <el-option label="分类" value="1"></el-option>
-            <el-option label="标签" value="2"></el-option>
+            <el-option label="标签" value="1"></el-option>
+            <el-option label="分类" value="2"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="详情" prop="tagDesc">
@@ -290,7 +290,7 @@
         }
       },
       formatType: function(row, colum) {
-        return row.type === 1 ? '分类' : row.type === 2 ? '标签' : '未知'
+        return row.tag_type === 1 ? '分类' : row.tag_type === 2 ? '标签' : '未知'
       }
     }
   }
