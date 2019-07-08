@@ -27,15 +27,15 @@
     <el-table :data="tableList" v-loading="listLoading" border element-loading-text="拼命加载中" style="width: 100%;">
       <el-table-column prop="id" label="序号" width="65">
       </el-table-column>
-      <el-table-column prop="tagName" label="标题">
+      <el-table-column prop="tag_name" label="标题">
       </el-table-column>
-      <el-table-column prop="tagDesc" label="说明">
+      <el-table-column prop="tag_desc" label="说明">
       </el-table-column>
-      <el-table-column prop="type" :formatter="formatType" label="类型">
+      <el-table-column prop="tag_type" :formatter="formatType" label="类型">
       </el-table-column>
-      <el-table-column prop="createTime" label="创建时间" width="65">
+      <el-table-column prop="create_time" label="创建时间" width="65">
       </el-table-column>
-      <el-table-column prop="updateTime" label="更新时间" width="110px">
+      <el-table-column prop="update_time" label="更新时间" width="110px">
       </el-table-column>
       <el-table-column prop="operation" label="操作 ">
         <template slot-scope="scope">
@@ -59,31 +59,31 @@
     <el-dialog title="编辑" :visible.sync="isShowEditVisible">
       <el-form label-width="80px" :model="tagFormData" ref="dataForm">
         <el-form-item label="标题" prop="tagName">
-          <el-input v-model="tagFormData.tagName"></el-input>
+          <el-input v-model="tagFormData.tag_name"></el-input>
         </el-form-item>
         <el-form-item label="详情" prop="tagDesc">
-          <el-input v-model="tagFormData.tagDesc"></el-input>
+          <el-input v-model="tagFormData.tag_desc"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="isShowEditVisible = false">取消</el-button>
-        <el-button type="primary" :loading="listLoading" @click="updateData" class="title1">确定</el-button>
+        <el-button type="primary" :loading="listLoading" @click="submitUpdateData" class="title1">确定</el-button>
       </div>
     </el-dialog>
     <!-- 新增标签 -->
     <el-dialog title="添加" :visible.sync="isShowAddVisible">
       <el-form label-width="80px" :model="tagFormData" ref="dataForm">
         <el-form-item label="标题" prop="tagName">
-          <el-input v-model="tagFormData.tagName"></el-input>
+          <el-input v-model="tagFormData.tag_name"></el-input>
         </el-form-item>
         <el-form-item label="分类" prop="type">
-          <el-select v-model="tagFormData.type" placeholder="请选择类型分类/标签">
+          <el-select v-model="tagFormData.tag_type" placeholder="请选择类型分类/标签">
             <el-option label="分类" value="1"></el-option>
             <el-option label="标签" value="2"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="详情" prop="tagDesc">
-          <el-input v-model="tagFormData.tagDesc"></el-input>
+          <el-input v-model="tagFormData.tag_desc"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -120,13 +120,14 @@
         isShowDeleteVisible: false,
         tagFormData: {
           id: 0,
-          type: 1,
-          tagName: '',
-          tagDesc: ''
+          tag_type: 1,
+          tag_name: '',
+          tag_desc: ''
         },
         total: 0,
-        page: 1,
-        pageSize: 5,
+        pageNum: 1,
+        pageSize: 10,
+        tageType: null,
         status: [
           {
             statusId: 1,
@@ -155,7 +156,13 @@
     },
     methods: {
       fetchData() {
-        axios.get('api/manage/tags?pageSize=' + this.pageSize + '&pageNum=' + this.page).then(result => {
+        axios.get('api/manage/tags', {
+          params: {
+            pageSize: this.pageSize,
+            pageNum: this.pageNum,
+            tagType: this.tageType
+          }
+        }).then(result => {
           if (result.data.status === 1000) {
             this.tableList = result.data.data.list
             this.total = result.data.data.total
@@ -199,7 +206,6 @@
       handleUpdate(row) {
         this.isShowEditVisible = true
         this.tagFormData = Object.assign({}, row)
-        console.log(row)
       },
       deleteUpdate(row) {
         this.isShowDeleteVisible = true
@@ -234,11 +240,7 @@
         row.status = status
       },
       addData() {
-        const tempData = Object.assign({})
-        tempData.tagName = this.tagFormData.tagName
-        tempData.tagDesc = this.tagFormData.tagDesc
-        tempData.type = this.tagFormData.type
-        axios.post('api/manage/tags', tempData).then((result) => {
+        axios.post('api/manage/tags', this.tagFormData).then((result) => {
           if (result.data.status === 1000) {
             this.isShowAddVisible = false
             this.fetchData()
@@ -253,13 +255,12 @@
           }
         })
       },
-      updateData() {
-        const tempData = Object.assign({})
-        tempData.id = this.tagFormData.id
-        tempData.tagName = this.tagFormData.tagName
-        tempData.tagDesc = this.tagFormData.tagDesc
-        tempData.type = this.tagFormData.type
-        axios.put('api/manage/tags/' + tempData.id + '?type=' + tempData.type, tempData).then((result) => {
+      submitUpdateData() {
+        if (this.tagFormData.id === null) {
+          this.$message.error(JSON.stringify('修改参数异常'))
+          return
+        }
+        axios.put('api/manage/tags/' + this.tagFormData.id, this.tagFormData).then((result) => {
           if (result.data.status === 1000) {
             this.isShowEditVisible = false
             this.fetchData()

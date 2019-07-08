@@ -6,12 +6,12 @@
       </el-form-item>
       <el-form-item label="分类" prop="categoryId">
         <el-select v-model="blog.categoryId" placeholder="请选择文章分类">
-          <el-option v-for="item in categories"  :label="item.v" :value="item.k"></el-option>
+          <el-option v-for="item in categories" :label="item.v" :value="item.k"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item v-if="tags != null" label="标签" prop="tags">
         <el-checkbox-group v-model="blog.tags">
-          <el-checkbox  v-for="item in tags" :label="item.k">{{item.v}}</el-checkbox>
+          <el-checkbox v-for="item in tags" :label="item.k">{{item.v}}</el-checkbox>
         </el-checkbox-group>
       </el-form-item>
       <el-form-item label="立即发布" prop="code">
@@ -45,16 +45,15 @@
   export default {
     name: 'editor',
     id: null,
-    data: function () {
+    data: function() {
       return {
         blog: {
           title: '',
-          categoryId: '',
+          categoryId: null,
           code: 1,
           tags: [],
           summary: '',
           author: 'Jann',
-          isDeleted: 0,
           status: 1
         },
         tags: [],
@@ -141,7 +140,6 @@
       },
       submitForm() {
         this.blog.code = this.blog.code === true ? 0 : 1
-        alert(JSON.stringify(this.blog))
         axios.post('api/manage/blogs', this.blog).then(result => {
           if (result.data.status === 1000) {
             this.$message.success('提交成功！')
