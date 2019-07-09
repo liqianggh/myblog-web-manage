@@ -53,8 +53,6 @@
                    @current-change="handleCurrentChange"
                    style="text-align:center;">
     </el-pagination>
-
-
     <!-- 编辑标签 -->
     <el-dialog title="编辑" :visible.sync="isShowEditVisible">
       <el-form label-width="80px" :model="tagFormData" ref="dataForm">
@@ -91,7 +89,6 @@
         <el-button type="primary" :loading="listLoading" @click="addData" class="title1">确定</el-button>
       </div>
     </el-dialog>
-
     <!-- 删除弹框 -->
     <el-dialog
       title="删除"
@@ -105,8 +102,6 @@
     </el-dialog>
   </div>
 </template>
-
-
 <script>
   import axios from 'Axios'
 

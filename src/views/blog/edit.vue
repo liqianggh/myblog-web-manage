@@ -22,7 +22,7 @@
       </el-form-item>
       <el-form-item>
         <div id="main">
-          <mavon-editor ref="md"  :ishljs = "true" @htmlCode="handleHtml" @change="handleHtml" />
+          <mavon-editor ref="md" v-model="blog.content"  :ishljs = "true" @htmlCode="handleHtml" @change="handleHtml" />
         </div>
       </el-form-item>
       <el-form-item>
@@ -41,13 +41,14 @@
     data() {
       return {
         id: null,
-        htmlContent: '',
         blog: {
           title: '',
           category_id: null,
           code: true,
           tags: [],
           summary: '',
+          content: '',
+          html_content: '',
           author: 'Jann',
           status: 1
         },
@@ -154,8 +155,7 @@
         }
       },
       handleHtml(mdText, htmlText) {
-        console.log('mdText', mdText)
-        console.log('htmlText', htmlText)
+        this.blog.html_content = htmlText
       }
     }
   }
