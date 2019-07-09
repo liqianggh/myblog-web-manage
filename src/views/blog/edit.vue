@@ -22,7 +22,7 @@
       </el-form-item>
       <el-form-item>
         <div id="main">
-          <mavon-editor ref="md" v-model="blog.content"/>
+          <mavon-editor ref="md"  :ishljs = "true" @htmlCode="handleHtml" @change="handleHtml" />
         </div>
       </el-form-item>
       <el-form-item>
@@ -30,23 +30,18 @@
         <el-button @click="resetForm('blog')">重置</el-button>
       </el-form-item>
     </el-form>
-
-
   </div>
 </template>
 
 <script>
-  import 'quill/dist/quill.core.css'
-  import 'quill/dist/quill.snow.css'
-  import 'quill/dist/quill.bubble.css'
-  import {quillEditor} from 'vue-quill-editor'
   import axios from 'Axios'
 
   export default {
     name: 'editor',
-    data: function() {
+    data() {
       return {
         id: null,
+        htmlContent: '',
         blog: {
           title: '',
           category_id: null,
@@ -60,26 +55,26 @@
         categories: [],
         rules: {
           title: [
-            {required: true, message: '请输入标题', trigger: 'blur'},
-            {min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: 'blur'}
+            { required: true, message: '请输入标题', trigger: 'blur' },
+            { min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: 'blur' }
           ],
           categoryId: [
-            {required: true, message: '请选择分类', trigger: 'change'}
+            { required: true, message: '请选择分类', trigger: 'change' }
           ],
           date1: [
-            {type: 'date', required: true, message: '请选择日期', trigger: 'change'}
+            { type: 'date', required: true, message: '请选择日期', trigger: 'change' }
           ],
           date2: [
-            {type: 'date', required: true, message: '请选择时间', trigger: 'change'}
+            { type: 'date', required: true, message: '请选择时间', trigger: 'change' }
           ],
           tags: [
-            {type: 'array', required: true, message: '请至少选择一个标签', trigger: 'change'}
+            { type: 'array', required: true, message: '请至少选择一个标签', trigger: 'change' }
           ],
           resource: [
-            {required: true, message: '123', trigger: 'change'}
+            { required: true, message: '123', trigger: 'change' }
           ],
           summary: [
-            {required: true, message: '请填写文章摘要', trigger: 'blur'}
+            { required: true, message: '请填写文章摘要', trigger: 'blur' }
           ]
         },
         content: '',
@@ -89,7 +84,6 @@
       }
     },
     components: {
-      quillEditor
     },
     created() {
       this.getParams()
@@ -136,12 +130,12 @@
         this.id = routerParams
         this.keyupMallName()
       },
-      onEditorChange({editor, html, text}) {
+      onEditorChange({ editor, html, text }) {
         this.content = html
       },
       submitForm() {
         this.blog.code = this.blog.code === true ? 0 : 1
-        if (this.id === null || this.id ===undefined) {
+        if (this.id === null || this.id === undefined) {
           axios.post('api/manage/blogs', this.blog).then(result => {
             if (result.data.status === 1000) {
               this.$message.success('提交成功！')
@@ -158,6 +152,10 @@
             }
           })
         }
+      },
+      handleHtml(mdText, htmlText) {
+        console.log('mdText', mdText)
+        console.log('htmlText', htmlText)
       }
     }
   }
