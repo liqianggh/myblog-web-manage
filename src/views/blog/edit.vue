@@ -22,7 +22,7 @@
       </el-form-item>
       <el-form-item>
         <div id="main">
-          <mavon-editor ref="md" v-model="blog.content"  :ishljs = "true" @htmlCode="handleHtml" @change="handleHtml" />
+          <mavon-editor ref="md"  v-model="blog.content"   @imgAdd="handleImgAdd"  :ishljs = "true" @htmlCode="handleHtml" @change="handleHtml" />
         </div>
       </el-form-item>
       <el-form-item>
@@ -35,20 +35,21 @@
 
 <script>
   import axios from 'Axios'
-
+  // import config from '/config/qiniu.config.js'
   export default {
     name: 'editor',
     data() {
       return {
         id: null,
+        htmlContent: '',
+        uploadDomain: 'http://upload-z1.qiniup.com',
+        qiniuAddr: 'puf3iyxzq.bkt.clouddn.com',
         blog: {
           title: '',
           category_id: null,
           code: true,
           tags: [],
           summary: '',
-          content: '',
-          html_content: '',
           author: 'Jann',
           status: 1
         },
@@ -156,6 +157,65 @@
       },
       handleHtml(mdText, htmlText) {
         this.blog.html_content = htmlText
+      },
+      handleImgAdd(pos, uploadFile) {
+        // this.mavonEditor.$img2Url(pos, url)
+        console.log('handleImgAdd:', uploadFile)
+        this.beforeUpload(uploadFile)
+        this.uploadFileToQiniu(uploadFile)
+      },
+      // 上传文件到七牛云
+      uploadFileToQiniu(file) {
+        const config = {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }
+        let fileType = ''
+        if (file.type === 'image/png') {
+          fileType = 'png'
+        } else {
+          fileType = 'jpg'
+        }
+        // 重命名要上传的文件
+        const newFileName = 'lytton' + new Date() + Math.floor(Math.random() * 100) + '.' + fileType
+        // 从后端获取上传凭证token
+        var token = this.getToken()
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('token', token)
+        formData.append('key', newFileName)
+        alert(123)
+        // 获取到凭证之后再将文件上传到七牛云空间
+        axios.post(this.uploadDomain, formData, config).then(res => {
+          alert(res)
+          console.log(res)
+          this.imageUrl = 'http://' + this.qiniuAddr + '/' + res.data.key
+          console.log(this.imageUrl)
+          alert(this.imageUrl)
+        })
+      },
+      // 验证文件合法性
+      beforeUpload(file) {
+        const isJPG = file.type === 'image/jpeg' || file.type === 'image/png'
+        const isLt2M = file.size / 1024 / 1024 < 2
+        if (!isJPG) {
+          this.$message.error('上传头像图片只能是 JPG 格式!')
+        }
+        if (!isLt2M) {
+          this.$message.error('上传头像图片大小不能超过 2MB!')
+        }
+        return isJPG && isLt2M
+      },
+      getToken() {
+        axios.get('/api/upload/token').then(res => {
+          if (res.data.status === 1000) {
+            alert(res.data.data)
+            return res.data.data
+          } else {
+            this.$message.error(JSON.stringify(res.data.msg))
+            return
+          }
+        })
+        return '123'
       }
     }
   }
