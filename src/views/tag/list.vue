@@ -2,22 +2,6 @@
   <div class="app-container">
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true">
-        <!--<el-form-item>-->
-          <!--<el-select v-model="value" clearable placeholder="状态">-->
-            <!--<el-option-->
-              <!--v-for="item in status"-->
-              <!--:key="item.statusId"-->
-              <!--:label="item.label"-->
-              <!--:value="item.statusId">-->
-            <!--</el-option>-->
-          <!--</el-select>-->
-        <!--</el-form-item>-->
-        <!--<el-form-item>-->
-          <!--<el-input placeholder="姓名" v-model="searchName"></el-input>-->
-        <!--</el-form-item>-->
-        <!--<el-form-item>-->
-          <!--<el-button type="primary" @click="doFilter()"><i class="el-icon-search"></i>搜索</el-button>-->
-        <!--</el-form-item>-->
         <el-form-item>
           <el-button type="primary" @click="handleAdd()">新增</el-button>
         </el-form-item>
@@ -25,19 +9,19 @@
     </el-col>
     <!--列表-->
     <el-table :data="tableList" v-loading="listLoading" border element-loading-text="拼命加载中" style="width: 100%;">
-      <el-table-column prop="id" label="序号" width="65">
+      <el-table-column prop="id" align="center" label="序号" width="65">
       </el-table-column>
-      <el-table-column prop="tag_name" label="标题">
+      <el-table-column prop="tag_name" width="140px" label="标题">
       </el-table-column>
       <el-table-column prop="tag_desc" label="说明">
       </el-table-column>
-      <el-table-column prop="tag_type" :formatter="formatType" label="类型">
+      <el-table-column prop="tag_type" :formatter="formatType" align="center" width="100px" label="类型">
       </el-table-column>
-      <el-table-column prop="create_time" label="创建时间" width="65">
+      <el-table-column prop="create_time" align="center" label="创建时间" width="180px">
       </el-table-column>
-      <el-table-column prop="update_time" label="更新时间" width="110px">
+      <el-table-column prop="update_time" align="center" label="更新时间" width="180px">
       </el-table-column>
-      <el-table-column prop="operation" label="操作 ">
+      <el-table-column prop="operation"  label="操作 ">
         <template slot-scope="scope">
           <el-button size="small" type="primary" @click="handleUpdate(scope.row)">编辑</el-button>
           <el-button size="small" type="danger" @click="deleteUpdate(scope.row)">删除</el-button>
@@ -54,7 +38,7 @@
                    style="text-align:center;">
     </el-pagination>
     <!-- 编辑标签 -->
-    <el-dialog title="编辑" :visible.sync="isShowEditVisible">
+    <el-dialog title="编辑" :modal ="false" :visible.sync="isShowEditVisible">
       <el-form label-width="80px" :model="tagFormData" ref="dataForm">
         <el-form-item label="标题" prop="tagName">
           <el-input v-model="tagFormData.tag_name"></el-input>
@@ -69,15 +53,15 @@
       </div>
     </el-dialog>
     <!-- 新增标签 -->
-    <el-dialog title="添加" :visible.sync="isShowAddVisible">
+    <el-dialog title="添加" :modal="false" :visible.sync="isShowAddVisible">
       <el-form label-width="80px" :model="tagFormData" ref="dataForm">
         <el-form-item label="标题" prop="tagName">
           <el-input v-model="tagFormData.tag_name"></el-input>
         </el-form-item>
         <el-form-item label="分类" prop="type">
           <el-select v-model="tagFormData.tag_type" placeholder="请选择类型分类/标签">
-            <el-option label="标签" value="1"></el-option>
-            <el-option label="分类" value="2"></el-option>
+            <el-option label="标签" :value="1"></el-option>
+            <el-option label="分类" :value="2"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="详情" prop="tagDesc">
@@ -91,6 +75,7 @@
     </el-dialog>
     <!-- 删除弹框 -->
     <el-dialog
+      :modal="false"
       title="删除"
       :visible.sync="isShowDeleteVisible"
       width="30%">
@@ -154,7 +139,7 @@
         axios.get('api/manage/tags', {
           params: {
             pageSize: this.pageSize,
-            pageNum: this.pageNum,
+            pageNum: this.page,
             tagType: this.tageType
           }
         }).then(result => {
@@ -192,11 +177,9 @@
         // 渲染表格,根据值
         this.currentChangePage(this.filterTableDataEnd)
       },
-      clickfun(e) {
-        console.log(e.target.innerText)
-      },
       handleAdd() {
         this.isShowAddVisible = true
+        this.tagFormData = {}
       },
       handleUpdate(row) {
         this.isShowEditVisible = true
@@ -271,7 +254,6 @@
       },
       handleCurrentChange(val) {
         this.page = val
-        console.log(this.page)
         this.fetchData()
       },
       currentChangePage(list) {
