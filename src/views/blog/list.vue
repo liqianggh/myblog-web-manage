@@ -19,23 +19,23 @@
           <el-button type="primary" @click="doFilter()"><i class="el-icon-search"></i>搜索</el-button>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary">新增</el-button>
+          <router-link tag="a" to="/blog/edit"><el-button type="primary">新增</el-button></router-link>
         </el-form-item>
       </el-form>
     </el-col>
     <!--列表-->
     <el-table :data="tableList" v-loading="listLoading" border element-loading-text="拼命加载中" style="width: 100%;">
-      <el-table-column prop="id" label="序号" width="65">
+      <el-table-column prop="id" align="center" label="序号" width="65">
       </el-table-column>
       <el-table-column prop="title" label="标题">
       </el-table-column>
-      <el-table-column prop="summary" min-width="150px" label="标题">
+      <el-table-column prop="summary" min-width="150px" label="摘要">
       </el-table-column>
-      <el-table-column prop="view_count" label="阅读数" width="65">
+      <el-table-column prop="view_count" align="center" label="阅读数" width="65">
       </el-table-column>
-      <el-table-column prop="update_time" label="修改时间" width="160px">
+      <el-table-column prop="update_time" align="center" label="修改时间" width="160px">
       </el-table-column>
-      <el-table-column :formatter="formatCode" label="状态" width="120">
+      <el-table-column :formatter="formatCode" align="center" label="状态" width="120">
       </el-table-column>
       <el-table-column prop="operation" label="操作 ">
         <template slot-scope="scope">
@@ -58,8 +58,9 @@
     <el-dialog
       title="删除"
       :visible.sync="deleteVisible"
+      :modal-append-to-body='false'
       width="30%">
-      <span>确认删除吗</span>
+      <span>确认删除博客{{this.temp.title}}吗？</span>
       <span slot="footer" class="dialog-footer">
         <el-button @click="deleteVisible = false">取 消</el-button>
         <el-button type="primary" @click="submitDelete">确 定</el-button>
@@ -70,9 +71,7 @@
 
 
 <script>
-  import {getList, updateArticle} from '@/api/table'
   import axios from 'Axios'
-
   export default {
     data() {
       return {
@@ -80,11 +79,10 @@
         listLoading: true,
         isShowEditVisible: false,
         deleteVisible: false,
+        deleteBlogTitle: '',
         temp: {
-          uid: '',
-          cname: '',
-          date: '',
-          status: ''
+          id: '',
+          title: ''
         },
         total: 7,
         page: 1,
@@ -97,6 +95,11 @@
             statusId: 0,
             label: '禁用'
           }
+        ],
+        codeValue: [
+          { id: 0, name: '默认' },
+          { id: 1, name: '推荐' },
+          { id: 2, name: '置顶' }
         ],
         value: '',
         searchName: '',
@@ -138,10 +141,8 @@
       doFilter() {
         if (this.searchName === '') {
           this.fetchData()
-          // this.$message.warning('查询条件不能为空！')
           return
         }
-        console.log(this.searchName)
         // 每次手动将数据置空,因为会出现多次点击搜索情况
         this.filterTableDataEnd = []
         this.tableList.forEach((value, index) => {
@@ -158,45 +159,47 @@
         // 渲染表格,根据值
         this.currentChangePage(this.filterTableDataEnd)
       },
-      clickfun(e) {
-        console.log(e.target.innerText)
-      },
       handleUpdate(row) {
-        this.temp = Object.assign({}, row)
-        console.log(row)
         this.$router.push({
           path: '/blog/edit',
           query: {
-            id: this.temp.id
+            id: row.id
           }
         })
       },
       deleteUpdate(row) {
-        console.log(row)
         this.deleteVisible = true
         this.temp = Object.assign({}, row)
-        // console.log(row)
       },
       submitDelete() {
-        const tempData = Object.assign({}, this.temp)
-        console.log(tempData)
-        console.log(this.tableList)
-        for (const v of this.tableList) {
-          if (v.uid === this.temp.uid) {
-            const index = this.tableList.indexOf(v)
-            this.tableList.splice(blog, 1)
-            this.fetchData()
-            console.log(this.tableList)
-            break
-          }
+        if (this.temp.id) {
+          axios.delete('/api/manage/blogs/' + this.temp.id).then(result => {
+            if (!result.data.data) {
+              this.$notify({
+                title: '成功',
+                message: '删除成功',
+                type: 'error',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: '成功',
+                message: '删除成功',
+                type: 'success',
+                duration: 2000
+              })
+              for (const v of this.tableList) {
+                if (v.uid === this.temp.uid) {
+                  const index = this.tableList.indexOf(v)
+                  this.tableList.splice(index, 1)
+                  this.fetchData()
+                  break
+                }
+              }
+              this.deleteVisible = false
+            }
+          })
         }
-        this.deleteVisible = false
-        this.$notify({
-          title: '成功',
-          message: '删除成功',
-          type: 'success',
-          duration: 2000
-        })
       },
       handleModifyStatus(row, status) {
         this.$message({
@@ -205,26 +208,6 @@
         })
         console.log(row)
         row.status = status
-      },
-      updateData() {
-        const tempData = Object.assign({}, this.temp)
-        console.log(tempData)
-        updateArticle(tempData).then(() => {
-          for (const v of this.tableList) {
-            if (v.uid === this.temp.uid) {
-              const index = this.tableList.indexOf(v)
-              this.tableList.splice(blog, 1, this.temp)
-              break
-            }
-          }
-          this.isShowEditVisible = false
-          this.$notify({
-            title: '成功',
-            message: '更新成功',
-            type: 'success',
-            duration: 2000
-          })
-        })
       },
       handleSizeChange(val) {
         this.page = val
@@ -244,8 +227,13 @@
           }
         }
       },
-      formatCode: function(row, colum) {
-        return row.code === 0 ? '已发布' : row.code === 1 ? '删除' : row.code === 2 ? '草稿' : '未知'
+      formatCode(row, colum) {
+        for (var i = 0; i < this.codeValue.length; i++) {
+          if (this.codeValue[i].id === row.code) {
+            return this.codeValue[i].name
+          }
+        }
+        return '未知'
       }
     }
   }

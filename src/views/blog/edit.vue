@@ -4,9 +4,9 @@
       <el-form-item label="标题" prop="title">
         <el-input v-model="blog.title"></el-input>
       </el-form-item>
-      <el-form-item label="分类" prop="categoryId">
-        <el-select v-model="blog.category_id" placeholder="请选择文章分类">
-          <el-option v-for="item in categories" :label="item.v" :value="item.k"></el-option>
+      <el-form-item label="分类"  prop="category_id">
+        <el-select  v-model="blog.category_id" placeholder="请选择文章分类">
+          <el-option v-for="item in categories" :label="item.v" :value="item.k" v-if=""></el-option>
         </el-select>
       </el-form-item>
       <el-form-item v-if="tags != null" label="标签" prop="tags">
@@ -14,11 +14,19 @@
           <el-checkbox v-for="item in tags" :label="item.k">{{item.v}}</el-checkbox>
         </el-checkbox-group>
       </el-form-item>
-      <el-form-item label="立即发布" prop="code">
-        <el-switch v-model="blog.code"></el-switch>
+      <el-form-item label="状态">
+        <el-radio-group v-model="blog.code">
+          <el-radio :label="0">默认</el-radio>
+          <el-radio :label="1">推荐</el-radio>
+          <el-radio :label="2">置顶</el-radio>
+        </el-radio-group>
       </el-form-item>
+
       <el-form-item label="概要" prop="summary">
         <el-input type="textarea" v-model="blog.summary"></el-input>
+      </el-form-item>
+      <el-form-item label="封面图片" placeholder="用于列表展示的图片，只需域名后面的部分即可....">
+        <el-input v-model="blog.img_url"></el-input>
       </el-form-item>
       <el-form-item>
         <div id="main">
@@ -26,7 +34,7 @@
         </div>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submitForm()">立即创建</el-button>
+        <el-button type="primary" @click="submitForm()">提交</el-button>
         <el-button @click="resetForm('blog')">重置</el-button>
       </el-form-item>
     </el-form>
@@ -35,7 +43,6 @@
 
 <script>
   import axios from 'Axios'
-  // import config from '/config/qiniu.config.js'
   export default {
     name: 'editor',
     data() {
@@ -47,11 +54,13 @@
         blog: {
           title: '',
           category_id: null,
-          code: true,
+          code: 0,
           tags: [],
+          content: '',
           summary: '',
+          img_url: '',
           author: 'Jann',
-          status: 1
+          status: -1
         },
         tags: [],
         categories: [],
@@ -60,7 +69,7 @@
             { required: true, message: '请输入标题', trigger: 'blur' },
             { min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: 'blur' }
           ],
-          categoryId: [
+          category_id: [
             { required: true, message: '请选择分类', trigger: 'change' }
           ],
           date1: [
@@ -94,8 +103,33 @@
       this.initData(this.id)
       this.getAllTags()
       this.getAllCategories()
+      this.intervalBegin()
+    },
+    beforeCreate() {
+      window.intervalObj = ''
+    },
+    destroyed() {
+      this.intervalEnd()
     },
     methods: {
+      intervalBegin() {
+        window.intervalObj = setInterval(this.autoSaveBlog, 60000)
+      },
+      intervalEnd() {
+        clearInterval(window.intervalObj)
+      },
+      autoSaveBlog() {
+        if (!this.isEmpty(this.blog.title) && !this.isEmpty(this.blog.content)) {
+          this.submitData(false)
+        }
+      },
+      isEmpty(obj) {
+        if (typeof obj === 'undefined' || obj == null || obj === '') {
+          return true
+        } else {
+          return false
+        }
+      },
       initData(id) {
         if (id) {
           axios.get('/api/manage/blogs/' + id).then(result => {
@@ -130,29 +164,41 @@
         const routerParams = this.$route.query.id
         // 将数据放在当前组件的数据内
         this.id = routerParams
-        this.keyupMallName()
+        // this.keyupMallName()
       },
       onEditorChange({ editor, html, text }) {
         this.content = html
       },
       submitForm() {
-        this.blog.code = this.blog.code === true ? 0 : 1
+        this.$refs['blog'].validate((valid) => {
+          if (valid) {
+            this.submitData(true)
+          } else {
+            return false
+          }
+        })
+      },
+      submitData(isJumpTo) {
         if (this.id === null || this.id === undefined) {
           axios.post('api/manage/blogs', this.blog).then(result => {
-            if (result.data.status === 1000) {
-              this.$message.success('提交成功！')
-            } else {
-              this.$message.error(JSON.stringify(result.data.msg))
-            }
+            this.noticeMessage(result.data.status, result.data.msg, isJumpTo)
           })
         } else {
           axios.put('api/manage/blogs/' + this.id, this.blog).then(result => {
-            if (result.data.status === 1000) {
-              this.$message.success('提交成功！')
-            } else {
-              this.$message.error(JSON.stringify(result.data.msg))
-            }
+            this.noticeMessage(result.data.status, result.data.msg, isJumpTo)
           })
+        }
+      },
+      noticeMessage(code, msg, isJumTo) {
+        if (!this.isEmpty(code) && code === 1000) {
+          if (isJumTo) {
+            this.$message.success('提交成功！')
+            this.$router.push({ path: '/blog/list' })
+          } else {
+            this.$message.success('内容已保存至草稿箱')
+          }
+        } else {
+          this.$message.error(msg)
         }
       },
       handleHtml(mdText, htmlText) {
@@ -183,14 +229,11 @@
         formData.append('file', file)
         formData.append('token', token)
         formData.append('key', newFileName)
-        alert(123)
         // 获取到凭证之后再将文件上传到七牛云空间
         axios.post(this.uploadDomain, formData, config).then(res => {
-          alert(res)
           console.log(res)
           this.imageUrl = 'http://' + this.qiniuAddr + '/' + res.data.key
           console.log(this.imageUrl)
-          alert(this.imageUrl)
         })
       },
       // 验证文件合法性
@@ -208,7 +251,6 @@
       getToken() {
         axios.get('/api/upload/token').then(res => {
           if (res.data.status === 1000) {
-            alert(res.data.data)
             return res.data.data
           } else {
             this.$message.error(JSON.stringify(res.data.msg))
