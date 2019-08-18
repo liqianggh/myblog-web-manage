@@ -4,8 +4,8 @@
       <el-form-item label="标题" prop="title">
         <el-input v-model="blog.title"></el-input>
       </el-form-item>
-      <el-form-item label="分类"  prop="category_id">
-        <el-select  v-model="blog.category_id" placeholder="请选择文章分类">
+      <el-form-item label="分类" prop="category_id">
+        <el-select v-model="blog.category_id" placeholder="请选择文章分类">
           <el-option v-for="item in categories" :label="item.v" :value="item.k" v-if=""></el-option>
         </el-select>
       </el-form-item>
@@ -30,7 +30,8 @@
       </el-form-item>
       <el-form-item>
         <div id="main">
-          <mavon-editor ref="md"  v-model="blog.content"   @imgAdd="handleImgAdd"  :ishljs = "true" @htmlCode="handleHtml" @change="handleHtml" />
+          <mavon-editor ref="md" v-model="blog.content" @imgAdd="handleImgAdd" :ishljs="true" @htmlCode="handleHtml"
+                        @change="handleHtml"/>
         </div>
       </el-form-item>
       <el-form-item>
@@ -43,6 +44,7 @@
 
 <script>
   import axios from 'Axios'
+
   export default {
     name: 'editor',
     data() {
@@ -60,7 +62,8 @@
           summary: '',
           img_url: '',
           author: 'Jann',
-          status: -1
+          blog_catalog: '',
+          status: 1
         },
         tags: [],
         categories: [],
@@ -94,8 +97,7 @@
         }
       }
     },
-    components: {
-    },
+    components: {},
     created() {
       this.getParams()
     },
@@ -178,7 +180,15 @@
           }
         })
       },
+      /**
+       *  提交数据
+       *  @param isJumpTo 是否跳转&自动提交，当false时候表示自动提交
+        */
       submitData(isJumpTo) {
+        if (!isJumpTo) {
+          this.blog.blog_status = -1
+        }
+        this.createCatalog(this.blog.html_content)
         if (this.id === null || this.id === undefined) {
           axios.post('api/manage/blogs', this.blog).then(result => {
             this.noticeMessage(result.data.status, result.data.msg, isJumpTo)
@@ -258,6 +268,39 @@
           }
         })
         return '123'
+      },
+      // 生成目录
+      createCatalog(htmlContent) {
+        const tree = []
+        const title = { H1: 1, H2: 1, H3: 1, H4: 1, H5: 1 }
+        traverseNode(this.parseToDOM(htmlContent))
+        function traverseNode(node) {
+          var tag = node.tagName
+          var children = node.children
+          if (title[tag]) {
+            // const id = tag + '-' + title[tag]
+            const id = node.getElementsByTagName('A')[0].getAttribute('id')
+            tree.push({
+              lev: parseInt(tag.slice(1)),
+              text: node.innerText,
+              id: id
+            })
+            node.setAttribute('id', id)
+            title[tag]++
+          }
+          for (let i = 0, len = children.length; i < len; i++) {
+            traverseNode(children[i])
+          }
+        }
+        this.blog.blog_catalog = JSON.stringify(tree)
+      },
+      // 将html文本转换成dom
+      parseToDOM(str) {
+        var div = document.createElement('div')
+        if (typeof str === 'string') {
+          div.innerHTML = str
+        }
+        return div
       }
     }
   }
