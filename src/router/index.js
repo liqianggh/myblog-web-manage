@@ -135,8 +135,8 @@ export const constantRouterMap = [
       {
         path: 'indexLang',
         name: 'indexLang',
-        component: () => import('@/views/i18n-demo/indexLang'),
-        meta: { title: 'i18n', icon: 'shezhi' }
+        // component: () => import('@/views/i18n-demo/indexLang'),
+        // meta: { title: 'i18n', icon: 'shezhi' }
       }
     ]
   },
