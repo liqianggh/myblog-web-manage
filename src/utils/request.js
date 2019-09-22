@@ -44,7 +44,7 @@ service.interceptors.response.use(
     var res = response.data
     if (res.status !== 1000) {
       Message({
-        message: res.data,
+        message: res.msg,
         type: 'error',
         duration: 5 * 1000
       })
