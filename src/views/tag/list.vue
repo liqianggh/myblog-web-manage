@@ -136,7 +136,7 @@
     },
     methods: {
       fetchData() {
-        axios.get('api/manage/tags', {
+        axios.get('/api/manage/tags', {
           params: {
             pageSize: this.pageSize,
             pageNum: this.page,
@@ -193,7 +193,7 @@
       submitDelete() {
         var id = this.temp.id
         var type = this.temp.type
-        axios.delete('api/manage/tags/' + id + '?type=' + type).then((result) => {
+        axios.delete('/api/manage/tags/' + id + '?type=' + type).then((result) => {
           if (result.data.status === 1000) {
             this.$notify({
               title: '成功',
@@ -218,7 +218,7 @@
         row.status = status
       },
       addData() {
-        axios.post('api/manage/tags', this.tagFormData).then((result) => {
+        axios.post('/api/manage/tags', this.tagFormData).then((result) => {
           if (result.data.status === 1000) {
             this.isShowAddVisible = false
             this.fetchData()
@@ -238,7 +238,7 @@
           this.$message.error(JSON.stringify('修改参数异常'))
           return
         }
-        axios.put('api/manage/tags/' + this.tagFormData.id, this.tagFormData).then((result) => {
+        axios.put('/api/manage/tags/' + this.tagFormData.id, this.tagFormData).then((result) => {
           if (result.data.status === 1000) {
             this.isShowEditVisible = false
             this.fetchData()

@@ -190,11 +190,11 @@
         }
         this.createCatalog(this.blog.html_content)
         if (this.id === null || this.id === undefined) {
-          axios.post('api/manage/blogs', this.blog).then(result => {
+          axios.post('/api/manage/blogs', this.blog).then(result => {
             this.noticeMessage(result.data.status, result.data.msg, isJumpTo)
           })
         } else {
-          axios.put('api/manage/blogs/' + this.id, this.blog).then(result => {
+          axios.put('/api/manage/blogs/' + this.id, this.blog).then(result => {
             this.noticeMessage(result.data.status, result.data.msg, isJumpTo)
           })
         }
